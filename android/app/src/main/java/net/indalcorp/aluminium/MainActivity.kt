@@ -1,4 +1,4 @@
-package com.sectionv3
+package net.indalcorp.aluminium
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

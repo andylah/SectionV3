@@ -1,4 +1,4 @@
-package com.sectionv3
+package net.indalcorp.aluminium
 
 import android.app.Application
 import com.facebook.react.PackageList
