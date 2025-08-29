@@ -12,6 +12,7 @@ export const theme = {
         HeaderTitleStyle: {
             fontWeight: 'bold',          // biar judul lebih profesional
         },
+        Dark: '#505050'
     },
 }
 

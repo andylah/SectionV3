@@ -1,6 +1,6 @@
 import {Component} from "react";
 import {StatusBar, View} from "react-native";
-import {Text, TextInput as TextIcon} from 'react-native-paper';
+import {Text, TextInput as TextIcon, withTheme} from 'react-native-paper';
 import Background from "./screenComponent/Background";
 import styles from "../Assets/Styles";
 import Loader from "./screenComponent/Loader";
@@ -12,12 +12,9 @@ import DeviceInfo from "react-native-device-info";
 import CustomTextInput from "./screenComponent/TextInput";
 
 class LoginScreen extends Component{
-    componentDidMount(){
-        console.log(
-            this.props.iconPassLock +","+ this.props.isPassword
-        )
-    }
+    
     render(){
+        const { colors } = this.props.theme;
         return(
            <Background>
                <View style={styles.container}>
@@ -34,7 +31,7 @@ class LoginScreen extends Component{
                         autoCapitalize="none"
                         keyboardType="default"
                         left={
-                           <TextIcon.Icon icon={()=><Ionicons name={'person-outline'} size={20} color="#ffffffff"/>}/>
+                           <TextIcon.Icon icon={()=><Ionicons name={'person-outline'} size={20} color={colors.Dark}/>}/>
                         }
                     />
                     <CustomTextInput
@@ -46,10 +43,10 @@ class LoginScreen extends Component{
                         returnKeyType="done"
                         keyboardType="default"
                         left={
-                           <TextIcon.Icon icon={()=><Ionicons name={'lock-closed'} size={20} color="#ffffffff"/>}/>
+                           <TextIcon.Icon icon={()=><Ionicons name={'lock-closed'} size={20} color={colors.Dark}/>}/>
                         }
                         // right={
-                        //     <TextIcon.Icon icon={()=><Ionicons name={this.props.iconPassLock} size={20} />} onPress={this.props.showPass}/>
+                        //     <TextIcon.Icon icon={()=><Ionicons name={this.props.iconPassLock} size={20} color={colors.Dark}/>} onPress={this.props.showPass}/>
                         // }
                     />
                     <Button mode="contained" icon='login' onPress={this.props.loginProcess} style={styles.buttonLogin}>
@@ -64,4 +61,4 @@ class LoginScreen extends Component{
     }
 }
 
-export default LoginScreen;
+export default withTheme(LoginScreen);

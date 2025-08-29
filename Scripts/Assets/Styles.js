@@ -2,6 +2,7 @@ import React from 'react';
 import {Dimensions, StyleSheet} from "react-native";
 import theme from "./Theme";
 
+
 const {width, height} = Dimensions.get('window');
 
 const styles = StyleSheet.create({
@@ -56,9 +57,9 @@ const styles = StyleSheet.create({
         justifyContent: 'space-around',
     },
     imageLogo: {
-        width: 350,
+        width: 325,
         height: 110,
-        marginBottom: -15,
+        marginBottom: -10,
     },
     buttonLogin: {
         width: '100%',
@@ -143,12 +144,13 @@ const styles = StyleSheet.create({
         height: 100,
         opacity: 0.4
     },
-    headline: {
+    header: {
         textAlign: 'center',
         fontWeight: 'bold',
         fontSize: 18,
         marginTop: 0,
         width: 200,
+        color: '#f1f1f1ff',
     },
     topBox: {
         flex: 1,
