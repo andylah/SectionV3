@@ -5,13 +5,15 @@ import {createBottomTabNavigator} from "@react-navigation/bottom-tabs";
 import {Text, useTheme} from "react-native-paper";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import DashboardComponent from "../Components/DashboardComponent";
-
 import {Alert, ToastAndroid, TouchableHighlight, View} from "react-native";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import styles from "../Assets/Styles";
 import {APIKEY, LOGOUT_URL} from "../Assets/Konstanta";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {Appbar} from "react-native-paper";
+import Kategori from "../Components/Kategori";
+import KategoriDetail from "../Components/KategoriDetail";
+import Favorit from "../Components/Favorit";
 
 
 const Stack = createStackNavigator();
@@ -69,20 +71,20 @@ const _logoutProses = (nav)=>{
 
 const MainApp = () => {
   const Tab = createBottomTabNavigator()
-  const theme = useTheme();
+  const { colors } = useTheme();
   return(
     <Tab.Navigator
       initialRouteName="dashboard"
       screenOptions={({navigation, route})=>({
-        tabBarActiveTintColor: '#9C27B0',
-        tabBarInactiveTintColor: '#757575',
-        tabBarActiveBackgroundColor: '#7B1FA2',
-        tabBarInactiveBackgroundColor: '#7C4DFF',
+        tabBarActiveTintColor: colors.ActiveTint,
+        tabBarInactiveTintColor: colors.InactiveTint,
+        tabBarActiveBackgroundColor: colors.ActiveBackground,
+        tabBarInactiveBackgroundColor: colors.InactiveBackground,
         title: 'PT Indal Aluminium.Tbk',
         headerStyle: {
-            backgroundColor: '#9C27B0',
+            backgroundColor: colors.primary,
         },
-        headerTintColor: '#FFFFFF',
+        headerTintColor: colors.HeaderTint,
         headerRight: () =>(
             <View style={styles.iconContainer}>
                 <TouchableHighlight onPress={()=>_logoutProses(navigation)}>
@@ -107,9 +109,51 @@ const MainApp = () => {
             ),
         }}
       />
+      <Tab.Screen
+        name='kategori'
+        component={KategoriStack}
+        options={({ navigation, route }) => ({
+            tabBarLabel: 'Client',
+            tabBarIcon: ({ color, size }) => (
+                <MaterialCommunityIcons name="account-group" color={color} size={size} />
+            ),
+            headerLeft: () => (
+                <View style={styles.circle}>
+                    <Text style={styles.profileText}>{!navigation.getState().routes[1].state? '':navigation.getState().routes[1].state.routes[0].params.userLogin}</Text>
+                </View>
+                //console.log(navigation.getState().routes[1])
+            )
+        })}
+      />
+      <Tab.Screen
+          name='favorit'
+          component={Favorit}
+          options={{
+              tabBarLabel: 'Favorit',
+              tabBarIcon: ({ color, size }) => (
+                  <MaterialCommunityIcons name="heart" color={color} size={size} />
+              ),
+          }}
+      />
 
     </Tab.Navigator>
   )
+}
+
+const KategoriStack = () => {
+  return(
+    <Stack.Navigator initialRouteName="mainKategori">
+        <Stack.Screen name="mainKategori" component={Kategori} options={{headerShown: false}}/>
+        <Stack.Screen name="detailKategori" component={KategoriDetail} options={({navigation, route}) =>({
+            header: () => (
+                <Appbar.Header>
+                    <Appbar.Action icon="chevron-left" onPress={()=>{navigation.goBack()}}/>
+                    <Appbar.Content title={route.params.client} />
+                </Appbar.Header>
+            )
+        })}/>
+    </Stack.Navigator>
+    )
 }
 
 const Navigasi = () => {

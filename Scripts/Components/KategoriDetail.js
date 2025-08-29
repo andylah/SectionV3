@@ -1,111 +1,47 @@
 import {Component} from "react";
-import DashboardScreen from "../Screens/DashboardScreen";
-import {BackHandler, PermissionsAndroid, Platform, ToastAndroid, View} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import {APIKEY, PDF_URL, POST_ALMI_URL} from "../Assets/Konstanta";
-import styles from "../Assets/Styles";
+import KategoriDetailScreen from "../Screens/KategoriDetailScreen";
+import {PermissionsAndroid, Platform, ToastAndroid, View} from "react-native";
 import Loader from "../Screens/screenComponent/Loader";
-import SearchBar from "../Screens/screenComponent/searchBar";
 import ProgressBar from "../Screens/screenComponent/ProgressBar";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import ReactNativeBlobUtil from "react-native-blob-util";
+import {PDF_URL} from "../Assets/Konstanta";
 
-class Dashboard extends Component{
+class KategoriDetail extends Component{
     constructor(props) {
         super();
         this.state = {
-            username:'',
-            password:'',
-            dataSection:[],
-            dataSectionFilter:[],
             isLoading: false,
-            visible: false,
-            percent: 0
+            downloadProgress: 0,
+            modalVisible: false,
+            client:'',
+            dataSectionFiltered:[]
         }
     }
 
-    handleBackButton = () => {
-        if (this.backClickCount == 1){
-            BackHandler.exitApp();
-        }else{
-            setTimeout(() => {
-                this.backClickCount = 0;
-            }, 3000);
-            this.backClickCount++;
-            ToastAndroid.show("Tekan sekali lagi untuk keluar dari aplikasi.", ToastAndroid.SHORT);
-            return true;
-        }
-        return true;
-    };
-
-    fectchingData = async () => {
-        this.setState({
-            isLoading: true
-        })
-        await fetch(POST_ALMI_URL, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'authkey' : APIKEY
-            },
-            body: JSON.stringify({
-                username: this.state.username,
-                password: this.state.password,
+    _prosesFilter = (client) =>{
+        this.setState({isLoading: true},()=>{
+            const filtered = this.props.navigation.getState().routes[1].params.dataAluminium.filter((dt)=>{
+                return dt.client == client;
             })
-        }).then((response)=>response.json())
-            .then((responseData)=>{
-                this.setState({
-                    dataSection: responseData.data,
-                    dataSectionFilter: responseData.data,
-                    isLoading: false
-                })
-            })
-            .catch((err)=>{
-                this.setState({
-                    isLoading: false
-                },()=>{
-                    ToastAndroid.showWithGravityAndOffset(
-                        "Server Down, silahkan hubungi administrator.",
-                        ToastAndroid.LONG,
-                        ToastAndroid.BOTTOM,
-                        25,
-                        50
-                    );
-                })
-            })
-    }
-
-    async componentDidMount() {
-        await AsyncStorage.multiGet(['username','password'], (error, result)=>{
             this.setState({
-                username: result[0][1],
-                password: result[1][1]
-            },()=>{
-                this.props.navigation.setParams({
-                    userLogin: this.state.username.substring(0,1).toUpperCase()
-                })
-                this.fectchingData()
+                dataSectionFiltered: filtered,
+                client: client,
+                isLoading: false,
             })
         })
-        this.focusListener = this.props.navigation.addListener('focus',()=>{
-            this.fectchingData()
-        })
-        this.backHandler = BackHandler.addEventListener(
-            'hardwareBackPress',
-            this.handleBackButton
-        );
     }
 
-    componentWillUnmount() {
-        if (this.backHandler) {
-            this.backHandler.remove();
-        }
-        if (this.focusListener) {
-            this.focusListener();
-        }
-    
+    componentDidMount() {
+        this.focusListener = this.props.navigation.addListener('focus', ()=>{
+            this._prosesFilter(this.props.navigation.getState().routes[1].params.client)
+        })
+        this._prosesFilter(this.props.navigation.getState().routes[1].params.client)
     }
-    longPress = async (almi) => {
+    componentWillUnmount() {
+        this.focusListener()
+    }
+    _longPress = async (almi) =>{
         try{
             let sectionLama = await AsyncStorage.getItem('section');
             if (sectionLama != null){
@@ -146,15 +82,7 @@ class Dashboard extends Component{
         }
     }
 
-    showProgress = () =>{
-        this.setState({visible: true})
-    }
-
-    hideProgress = () =>{
-        this.setState({visible: false})
-    }
-
-    downloadPDF = async (section) => {
+    _download = async (section) =>{
         let androidVersion = Platform.constants['Release'];
         let granted;
         ToastAndroid.showWithGravityAndOffset(
@@ -168,7 +96,7 @@ class Dashboard extends Component{
             granted = PermissionsAndroid.RESULTS.GRANTED;
         }else{
             granted = await PermissionsAndroid.request(
-                    PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,{
+                PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,{
                     title: "Ijin Penyimpanan",
                     message: 'Aplikasi membutuhkan ijin untuk mendownload file',
                     buttonNegative: 'Batal',
@@ -236,45 +164,18 @@ class Dashboard extends Component{
         }
     }
 
-    searching = (term) =>{
-        let dataSectionOriginal = this.state.dataSection
-        const result = dataSectionOriginal.filter(function(ds){
-            const sectionNo = ds.section.toUpperCase().replace(/\s/g, '');
-            const sectionApp = ds.application.toUpperCase().replace(/\s/g, '');
-            const sectionClient = ds.client.toUpperCase().replace(/\s/g, '');
-
-            const searchTerm = term.toUpperCase().replace(/\s/g, '');
-
-            return sectionNo.indexOf(searchTerm) > -1 || sectionApp.indexOf(searchTerm) > -1 || sectionClient.indexOf(searchTerm) > -1
-        })
-
-        if(result.length == 0){
-            ToastAndroid.showWithGravityAndOffset(
-                "Pencarian tidak menemukan hasil ...",
-                ToastAndroid.LONG,
-                ToastAndroid.BOTTOM,
-                25,
-                50
-            );
-        }else{
-            this.setState({
-                dataSectionFilter: result,
-            })
-        }
-    }
-
     render(){
         return(
-            <View style={styles.searchContainer}>
-                <ProgressBar progress={this.state.percent} loading={this.state.visible}/>
-                <SearchBar onPress={this.searching}/>
+            <View>
+                <ProgressBar progress={this.state.downloadProgress} loading={this.state.modalVisible}/>
                 <Loader loading={this.state.isLoading}/>
-                <DashboardScreen data={this.state.dataSectionFilter}
-                onLongPress={this.longPress}
-                downloadPDF={this.downloadPDF}/>
+                <KategoriDetailScreen data={this.state.dataSectionFiltered}
+                  LongPress={this._longPress}
+                  download={this._download}
+                />
             </View>
         )
     }
 }
 
-export default Dashboard;
+export default KategoriDetail;
